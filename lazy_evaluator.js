@@ -85,10 +85,11 @@ function constant_declaration_value(stmt) {
 
 //function is treated as constant declaration
 function eval_constant_declaration(stmt, env) {
-    display("Calling eval_constant_declaration function");
+    display("Calling eval_constant_declaration");
     set_name_value(constant_declaration_name(stmt),
-        evaluate(constant_declaration_value(stmt), env),
+        delay_it(constant_declaration_value(stmt), env),
         env);
+    display(env);
 }
 
 /* VARIABLE DECLARATIONS */
@@ -105,7 +106,7 @@ function variable_declaration_value(stmt) {
 
 function eval_variable_declaration(stmt, env) {
     set_name_value(variable_declaration_name(stmt),
-        evaluate(variable_declaration_value(stmt), env),
+        delay_it(variable_declaration_value(stmt), env),
         env);
 }   
     
@@ -138,8 +139,8 @@ function is_true(x) {
 function eval_conditional_expression(stmt, env) {
     return is_true(actual_value(cond_expr_pred(stmt),
                             env))
-           ? evaluate(cond_expr_cons(stmt), env)
-           : evaluate(cond_expr_alt(stmt), env);
+           ? delay_it(cond_expr_cons(stmt), env)
+           : delay_it(cond_expr_alt(stmt), env);
 }
 
 /* FUNCTION DEFINITION EXPRESSIONS */
@@ -329,10 +330,7 @@ function list_of_delayed_args(exps, env)
 
 
 function apply(fun, args, env) {
-    display("Using apply function");
-    display(fun);
-    display("Args");
-    display(args);
+   fun = force_it(fun);
    if (is_primitive_function(fun)) {
       return apply_primitive_function(
           fun, 
@@ -484,9 +482,11 @@ function make_return_value(content) {
 function is_return_value(value) {
     return is_tagged_list(value,"return_value");
 }
+
 function return_value_content(value) {
     return head(tail(value));
 }
+
 function eval_return_statement(stmt, env) {
     return make_return_value(
                evaluate(return_statement_expression(stmt),
@@ -506,7 +506,7 @@ function assignment_value(stmt) {
 }
 function eval_assignment(stmt, env) {
     display("Calling eval_assignment function");
-    const value = evaluate(assignment_value(stmt), env);
+    const value = delay_it(assignment_value(stmt), env);
     assign_name_value(assignment_name(stmt), value, env);
     return value;
 }
@@ -595,7 +595,6 @@ function set_name_value(name, val, env) {
 // environments until the name is found
 
 function lookup_name_value(name, env) {
-    display("Calling lookup_name_value function");
     function env_loop(env) {
         function scan(names, vals) {
             return is_null(names)
@@ -620,6 +619,8 @@ function lookup_name_value(name, env) {
 	    }
         }
     }
+    display("Calling lookup_name_value");
+    display(env_loop(env));
     return env_loop(env);
 }
 
@@ -696,13 +697,6 @@ function list_of_values(exps, env) {
 // a current environment
 
 function evaluate(stmt, env) {
-    display("Evaluate called");
-    display("---------------------------------------------");
-    display(stmt);
-    display("The environment");
-    display("---------------------------------------------");
-    //display(tail(env));
-    
    return is_self_evaluating(stmt)
           ?  stmt
         : is_name(stmt)
@@ -730,6 +724,8 @@ function evaluate(stmt, env) {
         : error(stmt, "Unknown statement type in evaluate: ");
 }
 
+
+
 // at the toplevel (outside of functions), return statements
 // are not allowed. The function evaluate_toplevel detects
 // return values and displays an error in when it encounters one.
@@ -741,8 +737,8 @@ function eval_toplevel(stmt) {
    // program environment
    
    const program_block = make_block(stmt);
-   const value = actual_value(program_block, 
-                          the_global_environment);
+   const value = evaluate(program_block, 
+                          the_empty_environment);
    if (is_return_value(value)) {
        error("return not allowed " +
              "outside of function definitions");
@@ -874,13 +870,19 @@ parse_and_eval("-12 - 8;");
 //const env = setup_environment();
 //const frame = first_frame(env);
 //display(frame_values(frame));
-
-eval_toplevel(parse(
+/*
+parse_and_eval(
    "function try_me(a, b) {        " +
    "    return a === 0 ? 1 : b; " +
    "}                           " +
-   "try_me(0, head(null));         "   ));
-   
+   "try_me(0, head(null));         "   );
+*/
+
+
+(parse_and_eval("const a = 1*2*3*4;"));
+
+
 /*
 read_eval_print_loop("");
 */
+
