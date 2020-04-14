@@ -1,0 +1,286 @@
+Documentation:
+
+When we are trying to run parse_and_eval("function list (x,y) {return x;} list(1, head(null));");:
+
+
+
+
+parse("function list (x,y) {return x;} list(1, head(null));"):
+[ "sequence",
+[ [ [ "constant_declaration",
+    [ ["name", ["list", null]],
+    [ [ "function_definition",
+      [ [["name", ["x", null]], [["name", ["y", null]], null]],
+      [["return_statement", [["name", ["x", null]], null]], null] ] ],
+    null ] ] ],
+  [ [ "application",
+    [ ["name", ["list", null]],
+    [ [1, [["application", [["name", ["head", null]], [[null, null], null]]], null]],
+    null ] ] ],
+  null ] ],
+null ] ]
+
+make block(stmt):
+[ "block",
+[ [ "sequence",
+  [ [ [ "constant_declaration",
+      [ ["name", ["list", null]],
+      [ [ "function_definition",
+        [ [["name", ["x", null]], [["name", ["y", null]], null]],
+        [["return_statement", [["name", ["x", null]], null]], null] ] ],
+      null ] ] ],
+    [ [ "application",
+      [ ["name", ["list", null]],
+      [ [1, [["application", [["name", ["head", null]], [[null, null], null]]], null]],
+      null ] ] ],
+    null ] ],
+  null ] ],
+null ] ]
+
+
+the start env would be:
+[ [ [ "display",
+    [ "error",
+    [ "+",
+    [ "-",
+    [ "*",
+    [ "/",
+    [ "%",
+    [ "===",
+    [ "!==",
+    [ "<",
+    ["<=", [">", [">=", ["!", ["head", ["tail", ["undefined", ["math_PI", null]]]]]]]] ] ] ] ] ] ] ] ] ] ],
+  [ [ [ "primitive",
+      [ function display(val) {
+        	[implementation hidden]
+        },
+      null ] ],
+    true ],
+  [ [ [ "primitive",
+      [ function error(str) {
+        	[implementation hidden]
+        },
+      null ] ],
+    true ],
+  [ [["primitive", [(x, y) => x + y, null]], true],
+  [ [["primitive", [(x, y) => x - y, null]], true],
+  [ [["primitive", [(x, y) => x * y, null]], true],
+  [ [["primitive", [(x, y) => x / y, null]], true],
+  [ [["primitive", [(x, y) => x % y, null]], true],
+  [ [["primitive", [(x, y) => x === y, null]], true],
+  [ [["primitive", [(x, y) => x !== y, null]], true],
+  [ [["primitive", [(x, y) => x < y, null]], true],
+  [ [["primitive", [(x, y) => x <= y, null]], true],
+  [ [["primitive", [(x, y) => x > y, null]], true],
+  [ [["primitive", [(x, y) => x >= y, null]], true],
+  [ [["primitive", [x => !x, null]], true],
+  [ [["primitive", [x => head(x), null]], true],
+  [ [["primitive", [x => tail(x), null]], true],
+  [[undefined, true], [[3.141592653589793, true], null]] ] ] ] ] ] ] ] ] ] ] ] ] ] ] ] ] ],
+null ]
+
+force_it(evaluate(stmt, env))
+running the block:
+the body of the block:
+[ "sequence",
+  [ [ [ "constant_declaration",
+      [ ["name", ["list", null]],
+      [ [ "function_definition",
+        [ [["name", ["x", null]], [["name", ["y", null]], null]],
+        [["return_statement", [["name", ["x", null]], null]], null] ] ],
+      null ] ] ],
+    [ [ "application",
+      [ ["name", ["list", null]],
+      [ [1, [["application", [["name", ["head", null]], [[null, null], null]]], null]],
+      null ] ] ],
+    null ] ],
+  null ] ]
+
+the local name:
+["list", null]
+
+in eval_block, the env is extend with the local names:
+
+then the body is evaluated in the extended env.
+
+in eval_sequence, the sequence statement will be used.
+head(tail(stmt)):
+if it is the return stament, then everything stop
+
+[ [ "constant_declaration",
+    [ ["name", ["list", null]],
+    [ [ "function_definition",
+      [ [["name", ["x", null]], [["name", ["y", null]], null]],
+      [["return_statement", [["name", ["x", null]], null]], null] ] ],
+    null ] ] ],
+  [ [ "application",
+    [ ["name", ["list", null]],
+    [ [1, [["application", [["name", ["head", null]], [[null, null], null]]], null]],
+    null ] ] ],
+  null ] ]
+
+firstly, it will evaluate the first_stmt_value
+the first statement is:
+[ "constant_declaration",
+    [ ["name", ["list", null]],
+    [ [ "function_definition",
+      [ [["name", ["x", null]], [["name", ["y", null]], null]],
+      [["return_statement", [["name", ["x", null]], null]], null] ] ],
+    null ] ] ]
+
+
+the first_stmt_value is:
+evaluate(first_statement, env);
+
+in eval_constant_declaration, set_name_value will be called
+set_name_value is called:
+conatant declaration name is: 
+"list"
+
+constant declaration value is:
+[["name", ["x", null]], [["name", ["y", null]], null]]
+
+
+this value will be evaluated in evaluate function:
+use look_name_value, the function will be set into the env.
+(noted, the name: function name and varibale, constant name are already loaded to into env in eval_block step)
+
+Here, the first step is finished, and the function definition is setted to the environment. In the first frame.
+
+
+
+the rest statement is:
+[ [ "application",
+    [ ["name", ["list", null]],
+    [ [1, [["application", [["name", ["head", null]], [[null, null], null]]], null]],
+    null ] ] ],
+  null ]
+
+after first_statement:
+[ "application",
+    [ ["name", ["list", null]],
+    [ [1, [["application", [["name", ["head", null]], [[null, null], null]]], null]],
+    null ] ] ]
+
+the operator(stmt):
+["name", ["list", null]]
+
+this will be evaluated with evaluate( , env), in evaluate, the lookup_name_value will be called to get the function:
+
+lookup_name_value("list", env)
+the return is a compound function, combined with the function and the env, which is the function to be applied.
+[ "compound_function",
+[ ["x", ["y", null]],
+[ ["return_statement", [["name", ["x", null]], null]],
+[ [ [["list", null], [[...<circular>, true], null]],
+  [ [ [ "display",
+      [ "error",
+      [ "+",
+      [ "-",
+      [ "*",
+      [ "/",
+      [ "%",
+      [ "===",
+      ["!==", ["<", ["<=", [">", [">=", ["!", ["undefined", ["math_PI", null]]]]]]]] ] ] ] ] ] ] ] ],
+    [ [ [ "primitive",
+        [ function display(val) {
+          	[implementation hidden]
+          },
+        null ] ],
+      true ],
+    [ [ [ "primitive",
+        [ function error(str) {
+          	[implementation hidden]
+          },
+        null ] ],
+      true ],
+    [ [["primitive", [(x, y) => x + y, null]], true],
+    [ [["primitive", [(x, y) => minus(x, y), null]], true],
+    [ [["primitive", [(x, y) => x * y, null]], true],
+    [ [["primitive", [(x, y) => x / y, null]], true],
+    [ [["primitive", [(x, y) => x % y, null]], true],
+    [ [["primitive", [(x, y) => x === y, null]], true],
+    [ [["primitive", [(x, y) => x !== y, null]], true],
+    [ [["primitive", [(x, y) => x < y, null]], true],
+    [ [["primitive", [(x, y) => x <= y, null]], true],
+    [ [["primitive", [(x, y) => x > y, null]], true],
+    [ [["primitive", [(x, y) => x >= y, null]], true],
+    [ [["primitive", [x => !x, null]], true],
+    [[undefined, true], [[3.141592653589793, true], null]] ] ] ] ] ] ] ] ] ] ] ] ] ] ] ],
+  null ] ],
+null ] ] ] ]
+
+
+
+the parameter will be found by operands(stmt): head(tail(tail(stmt)))
+[1, [["application", [["name", ["head", null]], [[null, null], null]]], null]]
+
+
+then comes the apply function:
+
+the function_body(fun): 
+["return_statement", [["name", ["x", null]], null]]
+
+and the parameters will be extended to environment with extend_environment:
+the function_parameters is ["x", ["y", null]]
+
+
+the delayed args should be [["thunk", [1,env]], [ ["thunk", [ value2,env]], null]] 
+
+the value2 = [["application", [["name", ["head", null]], [[null, null], null]]], null]
+
+
+and the environment after extended (this is the step to extend the function parameter): 
+
+[ [ ["x", ["y", null]],
+  [[["thunk", [1, env]], true], [[["thunk", [value2, 1]], true], null]] ],
+null ]
+
+then this apply function will be evaluated and return
+
+[ "thunk",
+[ 1,
+[ [ [ ["list", null],
+    [ [ [ "compound_function",
+        [ ["x", ["y", null]],
+        [["return_statement", [["name", ["x", null]], null]], [...<circular>, null]] ] ],
+      true ],
+    null ] ],
+  [ [ [ "display",
+      [ "error",
+      [ "+",
+      [ "-",
+      [ "*",
+      [ "/",
+      [ "%",
+      [ "===",
+      ["!==", ["<", ["<=", [">", [">=", ["!", ["undefined", ["math_PI", null]]]]]]]] ] ] ] ] ] ] ] ],
+    [ [ [ "primitive",
+        [ function display(val) {
+          	[implementation hidden]
+          },
+        null ] ],
+      true ],
+    [ [ [ "primitive",
+        [ function error(str) {
+          	[implementation hidden]
+          },
+        null ] ],
+      true ],
+    [ [["primitive", [(x, y) => x + y, null]], true],
+    [ [["primitive", [(x, y) => minus(x, y), null]], true],
+    [ [["primitive", [(x, y) => x * y, null]], true],
+    [ [["primitive", [(x, y) => x / y, null]], true],
+    [ [["primitive", [(x, y) => x % y, null]], true],
+    [ [["primitive", [(x, y) => x === y, null]], true],
+    [ [["primitive", [(x, y) => x !== y, null]], true],
+    [ [["primitive", [(x, y) => x < y, null]], true],
+    [ [["primitive", [(x, y) => x <= y, null]], true],
+    [ [["primitive", [(x, y) => x > y, null]], true],
+    [ [["primitive", [(x, y) => x >= y, null]], true],
+    [ [["primitive", [x => !x, null]], true],
+    [[undefined, true], [[3.141592653589793, true], null]] ] ] ] ] ] ] ] ] ] ] ] ] ] ] ],
+  null ] ],
+null ] ] ]
+
+
